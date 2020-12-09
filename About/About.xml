@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Clear The Stockpiles (Continued)</name>
+  <packageId>Mlie.ClearTheStockpiles</packageId>
+  <author>MarvinKosh</author>
+  <url>https://github.com/emipa606/ClearTheStockpiles</url>
+  <supportedVersions>
+    <li>1.0</li>
+    <li>1.1</li>
+    <li>1.2</li>
+  </supportedVersions>
+  <modDependencies />
+  <loadAfter />
+  <description>[img]https://i.imgur.com/WAEzk68.png[/img]
+Update of MarvinKoshs mod
+https://steamcommunity.com/sharedfiles/filedetails/?id=1542424055
+with permission.
+
+[img]https://i.imgur.com/7Gzt3Rg.png[/img]
+
+[table]
+    [tr]
+        [td][url=https://invite.gg/Mlie][img]https://i.imgur.com/zdzzBrc.png[/img][/url][/td]
+        [td][url=https://github.com/emipa606/ClearTheStockpiles][img]https://i.imgur.com/kTkpTOE.png[/img][/url][/td]
+    [/tr]
+[/table]
+	
+[img]https://i.imgur.com/NOW7jU1.png[/img]
+Adds a new WorkGiver for hauling, which prioritises clearing stockpiles of blockages that may if there are extra products from doing a bill at a work table.
+
+The behaviour of this WorkGiver is as follows:
+If an item doesn't belong in a stockpile, first a check is made to see if there is a valid stockpile within a radius of 18 of the item. If so, the item will be taken there.
+If no valid stockpile was found or no stockpile with enough space was found, the item will be dumped in a small radius of its original position. This position will not be next to or in a doorway or on top of a trap.
+
+The clearing routine by default runs at a higher priority (85) than hauling corpses (corpses can block stockpiles, no reason not to haul those) but at a lower priority than burying and stripping corpses.
+
+In the mod settings, you can configure the radius in which to search for matching stockpiles, between 1 and 25. There is also a debug mode toggle, please don't use this unless you're troubleshooting the mod.
+
+[Version 1.0.7]
+
+[b]Please ask me before re-uploading this mod.[/b]
+
+[h2]Don't comment asking when the mod will update.[/h2]
+
+I'll post on [url=https://twitter.com/marvinkosh]social media[/url] when there's a mod update. If you have encountered a problem with a mod, let me know immediately - you can @ or DM me on Twtter or on the RimWorld Discord.
+
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=1536294009]Go to the Beta 19 version.[/url]
+
+Go to Ludeon Forums for more information and direct download links: https://ludeon.com/forums/index.php?topic=30508.0
+
+If you like this mod, why not consider looking at some of my [url=http://steamcommunity.com/id/marvinkosh/myworkshopfiles/?appid=294100]other mods[/url]?</description>
+</ModMetaData>

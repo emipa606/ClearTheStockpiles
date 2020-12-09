@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <CTS_LookRadiusLabel>Radius for finding matching stockpile</CTS_LookRadiusLabel>
+  <CTS_Debug>Toggle debug mode</CTS_Debug>
+</LanguageData>
