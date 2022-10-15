@@ -2,4 +2,5 @@
 <LanguageData>
   <CTS_LookRadiusLabel>Radius for finding matching stockpile</CTS_LookRadiusLabel>
   <CTS_Debug>Toggle debug mode</CTS_Debug>
+  <CTS_ModVersion>Installed mod-version: {0}</CTS_ModVersion>
 </LanguageData>

@@ -1,43 +1,38 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using RimWorld;
 using Verse;
 using Verse.AI;
 
-namespace ClearTheStockpiles
+namespace ClearTheStockpiles;
+
+public class WorkGiver_ClearStockpile : WorkGiver_Haul
 {
-    // Token: 0x02000002 RID: 2
-    public class WorkGiver_ClearStockpile : WorkGiver_Haul
+    public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn Pawn)
     {
-        // Token: 0x06000001 RID: 1 RVA: 0x00002050 File Offset: 0x00000250
-        public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn Pawn)
+        var list = Pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
+        var list2 = new List<Thing>();
+        foreach (var thing in list)
         {
-            var list = Pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
-            var list2 = new List<Thing>();
-            foreach (var thing in list)
+            if (thing.IsInAnyStorage() && !thing.IsInValidStorage())
             {
-                if (thing.IsInAnyStorage() && !thing.IsInValidStorage())
-                {
-                    list2.Add(thing);
-                }
+                list2.Add(thing);
             }
-
-            return list2;
         }
 
-        // Token: 0x06000002 RID: 2 RVA: 0x000020E0 File Offset: 0x000002E0
-        public override bool ShouldSkip(Pawn pawn, bool forced = false)
-        {
-            return pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling().Count == 0;
-        }
+        return list2;
+    }
 
-        // Token: 0x06000003 RID: 3 RVA: 0x0000210C File Offset: 0x0000030C
-        public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
-        {
-            var result = !HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced)
-                ? null
-                : HaulOuttaHere.HaulOuttaHereJobFor(pawn, t);
+    public override bool ShouldSkip(Pawn pawn, bool forced = false)
+    {
+        return pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling().Count == 0;
+    }
 
-            return result;
-        }
+    public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
+    {
+        var result = !HaulAIUtility.PawnCanAutomaticallyHaulFast(pawn, t, forced)
+            ? null
+            : HaulOuttaHere.HaulOuttaHereJobFor(pawn, t);
+
+        return result;
     }
 }
