@@ -13,8 +13,7 @@ internal class CTS_Loader : Mod
     {
         settings = GetSettings<CTS_Settings>();
         currentVersion =
-            VersionFromManifest.GetVersionFromModMetaData(
-                ModLister.GetActiveModWithIdentifier("Mlie.ClearTheStockpiles"));
+            VersionFromManifest.GetVersionFromModMetaData(content.ModMetaData);
     }
 
     public override string SettingsCategory()

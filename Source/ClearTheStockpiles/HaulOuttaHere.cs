@@ -10,7 +10,7 @@ public static class HaulOuttaHere
 {
     private const int cellsToSearch = 100;
 
-    private static readonly List<IntVec3> candidates = new List<IntVec3>();
+    private static readonly List<IntVec3> candidates = [];
 
     public static bool CanHaulOuttaHere(Pawn p, Thing t, out IntVec3 storeCell)
     {
@@ -65,11 +65,6 @@ public static class HaulOuttaHere
         var debugMessages = new List<string>();
         var region = center.GetRegion(worker.Map);
         bool result;
-
-        bool currentStockpile(IntVec3 slot)
-        {
-            return worker.Map.haulDestinationManager.SlotGroupAt(haulable.Position).CellsList.Contains(slot);
-        }
 
         if (region == null)
         {
@@ -144,6 +139,11 @@ public static class HaulOuttaHere
         }
 
         return result;
+
+        bool currentStockpile(IntVec3 slot)
+        {
+            return worker.Map.haulDestinationManager.SlotGroupAt(haulable.Position).CellsList.Contains(slot);
+        }
     }
 
     private static bool HaulablePlaceValidator(Thing haulable, Pawn worker, IntVec3 c, out string debugText)
