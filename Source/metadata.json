@@ -2,5 +2,16 @@
   "Continued": true,
   "CanAdd": "0",
   "CanRemove": "2",
-  "PreviewVersion": "1.5"
+  "PreviewVersion": "1.6",
+  "LastXmlCleaning": "2025-07-05T22:17:46.0597175+02:00",
+  "SocialImageSet": true,
+  "Patches": false,
+  "Defs": true,
+  "Assemblies": true,
+  "LinesOfCode": 14459.0,
+  "LinesOfXML": 511.0,
+  "SearchTags": [
+    " stockpiles",
+    " clearing"
+  ]
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  <!-- EN: haul stockpile blockages -->
+  <HaulAsideBlockages.label>haul stockpile blockages</HaulAsideBlockages.label>
+  <!-- EN: hauling -->
+  <HaulAsideBlockages.gerund>hauling</HaulAsideBlockages.gerund>
+  <!-- EN: haul -->
+  <HaulAsideBlockages.verb>haul</HaulAsideBlockages.verb>
+</LanguageData>

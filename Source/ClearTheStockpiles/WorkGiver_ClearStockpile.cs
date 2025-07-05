@@ -7,9 +7,9 @@ namespace ClearTheStockpiles;
 
 public class WorkGiver_ClearStockpile : WorkGiver_Haul
 {
-    public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn Pawn)
+    public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
     {
-        var list = Pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
+        var list = pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
         var list2 = new List<Thing>();
         foreach (var thing in list)
         {

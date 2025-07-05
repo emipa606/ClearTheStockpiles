@@ -6,12 +6,12 @@ namespace ClearTheStockpiles;
 
 internal class CTS_Loader : Mod
 {
-    public static CTS_Settings settings;
+    public static CTS_Settings Settings;
     private static string currentVersion;
 
     public CTS_Loader(ModContentPack content) : base(content)
     {
-        settings = GetSettings<CTS_Settings>();
+        Settings = GetSettings<CTS_Settings>();
         currentVersion =
             VersionFromManifest.GetVersionFromModMetaData(content.ModMetaData);
     }
@@ -23,37 +23,37 @@ internal class CTS_Loader : Mod
 
     public override void DoSettingsWindowContents(Rect inRect)
     {
-        var text = settings.radiusToSearch.ToString();
-        var listing_Standard = new Listing_Standard
+        var text = Settings.RadiusToSearch.ToString();
+        var listingStandard = new Listing_Standard
         {
             ColumnWidth = inRect.width / 3f
         };
-        listing_Standard.Begin(inRect);
-        listing_Standard.Label("CTS_LookRadiusLabel".Translate());
-        listing_Standard.TextFieldNumeric(ref settings.radiusToSearch, ref text, 1f, 25f);
-        listing_Standard.Gap();
-        listing_Standard.CheckboxLabeled("CTS_Debug".Translate(), ref settings.debug);
+        listingStandard.Begin(inRect);
+        listingStandard.Label("CTS_LookRadiusLabel".Translate());
+        listingStandard.TextFieldNumeric(ref Settings.RadiusToSearch, ref text, 1f, 25f);
+        listingStandard.Gap();
+        listingStandard.CheckboxLabeled("CTS_Debug".Translate(), ref Settings.Debug);
         if (currentVersion != null)
         {
-            listing_Standard.Gap();
+            listingStandard.Gap();
             GUI.contentColor = Color.gray;
-            listing_Standard.Label("CTS_ModVersion".Translate(currentVersion));
+            listingStandard.Label("CTS_ModVersion".Translate(currentVersion));
             GUI.contentColor = Color.white;
         }
 
-        listing_Standard.End();
+        listingStandard.End();
     }
 
     public class CTS_Settings : ModSettings
     {
-        public bool debug;
+        public bool Debug;
 
-        public int radiusToSearch = 18;
+        public int RadiusToSearch = 18;
 
         public override void ExposeData()
         {
-            Scribe_Values.Look(ref radiusToSearch, "val_RadiusToSearch", 18, true);
-            Scribe_Values.Look(ref debug, "mode_debug", false, true);
+            Scribe_Values.Look(ref RadiusToSearch, "val_RadiusToSearch", 18, true);
+            Scribe_Values.Look(ref Debug, "mode_debug", false, true);
         }
     }
 }

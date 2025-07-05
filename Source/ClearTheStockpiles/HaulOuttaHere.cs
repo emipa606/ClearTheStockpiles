@@ -8,11 +8,11 @@ namespace ClearTheStockpiles;
 
 public static class HaulOuttaHere
 {
-    private const int cellsToSearch = 100;
+    private const int CellsToSearch = 100;
 
     private static readonly List<IntVec3> candidates = [];
 
-    public static bool CanHaulOuttaHere(Pawn p, Thing t, out IntVec3 storeCell)
+    private static bool canHaulOuttaHere(Pawn p, Thing t, out IntVec3 storeCell)
     {
         storeCell = IntVec3.Invalid;
         bool result;
@@ -23,9 +23,9 @@ public static class HaulOuttaHere
         }
         else
         {
-            result = TryFindBetterStoreCellInRange(t, p, p.Map, CTS_Loader.settings.radiusToSearch,
+            result = tryFindBetterStoreCellInRange(t, p, p.Map, CTS_Loader.Settings.RadiusToSearch,
                          StoragePriority.Unstored, p.Faction, out storeCell) ||
-                     TryFindSpotToPlaceHaulableCloseTo(t, p, t.PositionHeld, out storeCell);
+                     tryFindSpotToPlaceHaulableCloseTo(t, p, t.PositionHeld, out storeCell);
         }
 
         return result;
@@ -34,7 +34,7 @@ public static class HaulOuttaHere
     public static Job HaulOuttaHereJobFor(Pawn p, Thing t)
     {
         Job result;
-        if (!CanHaulOuttaHere(p, t, out var c))
+        if (!canHaulOuttaHere(p, t, out var c))
         {
             JobFailReason.Is("Can't clear: No place to clear to.");
             result = null;
@@ -59,86 +59,79 @@ public static class HaulOuttaHere
         return result;
     }
 
-    private static bool TryFindSpotToPlaceHaulableCloseTo(Thing haulable, Pawn worker, IntVec3 center,
+    private static bool tryFindSpotToPlaceHaulableCloseTo(Thing haulable, Pawn worker, IntVec3 center,
         out IntVec3 spot)
     {
         var debugMessages = new List<string>();
         var region = center.GetRegion(worker.Map);
-        bool result;
 
         if (region == null)
         {
             spot = center;
-            result = false;
+            return false;
         }
-        else
-        {
-            var traverseParms = TraverseParms.For(worker);
-            var foundCell = IntVec3.Invalid;
-            RegionTraverser.BreadthFirstTraverse(region, (_, r) => r.Allows(traverseParms, false),
-                delegate(Region r)
+
+        var traverseParms = TraverseParms.For(worker);
+        var foundCell = IntVec3.Invalid;
+        RegionTraverser.BreadthFirstTraverse(region, (_, r) => r.Allows(traverseParms, false),
+            delegate(Region r)
+            {
+                candidates.Clear();
+                candidates.AddRange(r.Cells);
+                candidates.RemoveAll(currentStockpile);
+                candidates.Sort((a, b) => a.DistanceToSquared(center).CompareTo(b.DistanceToSquared(center)));
+                foreach (var intVec in candidates)
                 {
-                    candidates.Clear();
-                    candidates.AddRange(r.Cells);
-                    candidates.RemoveAll(currentStockpile);
-                    candidates.Sort((a, b) => a.DistanceToSquared(center).CompareTo(b.DistanceToSquared(center)));
-                    foreach (var intVec in candidates)
+                    if (haulablePlaceValidator(haulable, worker, intVec, out var item))
                     {
-                        if (HaulablePlaceValidator(haulable, worker, intVec, out var item))
-                        {
-                            foundCell = intVec;
-                            var debug = CTS_Loader.settings.debug;
-                            if (debug)
-                            {
-                                debugMessages.Add(item);
-                            }
-
-                            if (debugMessages.Count == 0)
-                            {
-                                return true;
-                            }
-
-                            foreach (var text in debugMessages)
-                            {
-                                Log.Message(text);
-                            }
-
-                            return true;
-                        }
-
-                        var debug2 = CTS_Loader.settings.debug;
-                        if (debug2)
+                        foundCell = intVec;
+                        var debug = CTS_Loader.Settings.Debug;
+                        if (debug)
                         {
                             debugMessages.Add(item);
                         }
+
+                        if (debugMessages.Count == 0)
+                        {
+                            return true;
+                        }
+
+                        foreach (var text in debugMessages)
+                        {
+                            Log.Message(text);
+                        }
+
+                        return true;
                     }
 
-                    if (debugMessages.Count == 0)
+                    var debug2 = CTS_Loader.Settings.Debug;
+                    if (debug2)
                     {
-                        return false;
+                        debugMessages.Add(item);
                     }
+                }
 
-                    foreach (var text2 in debugMessages)
-                    {
-                        Log.Message(text2);
-                    }
-
+                if (debugMessages.Count == 0)
+                {
                     return false;
-                }, cellsToSearch);
-            var isValid = foundCell.IsValid;
-            if (isValid)
-            {
-                spot = foundCell;
-                result = true;
-            }
-            else
-            {
-                spot = center;
-                result = false;
-            }
+                }
+
+                foreach (var text2 in debugMessages)
+                {
+                    Log.Message(text2);
+                }
+
+                return false;
+            }, CellsToSearch);
+        var isValid = foundCell.IsValid;
+        if (isValid)
+        {
+            spot = foundCell;
+            return true;
         }
 
-        return result;
+        spot = center;
+        return false;
 
         bool currentStockpile(IntVec3 slot)
         {
@@ -146,161 +139,144 @@ public static class HaulOuttaHere
         }
     }
 
-    private static bool HaulablePlaceValidator(Thing haulable, Pawn worker, IntVec3 c, out string debugText)
+    private static bool haulablePlaceValidator(Thing haulable, Pawn worker, IntVec3 c, out string debugText)
     {
-        bool result;
         if (!worker.CanReserveAndReach(c, PathEndMode.OnCell, worker.NormalMaxDanger()))
         {
             debugText = "Could not reserve or reach";
-            result = false;
+            return false;
         }
-        else
+
+        if (GenPlace.HaulPlaceBlockerIn(haulable, c, worker.Map, true) != null)
         {
-            if (GenPlace.HaulPlaceBlockerIn(haulable, c, worker.Map, true) != null)
+            debugText = "Place was blocked";
+            return false;
+        }
+
+        var slotGroup = c.GetSlotGroup(worker.Map);
+        if (slotGroup != null)
+        {
+            if (!slotGroup.Settings.AllowedToAccept(haulable))
             {
-                debugText = "Place was blocked";
-                result = false;
+                debugText = "Stockpile does not accept";
+                return false;
+            }
+        }
+
+        if (!c.Standable(worker.Map))
+        {
+            debugText = "Cell not standable";
+            return false;
+        }
+
+        if (c == haulable.Position && haulable.Spawned)
+        {
+            debugText = "Current position of thing to be hauled";
+            return false;
+        }
+
+        if (c.ContainsStaticFire(worker.Map))
+        {
+            debugText = "Cell has fire";
+            return false;
+        }
+
+        if (haulable.def.BlocksPlanting())
+        {
+            var zone = worker.Map.zoneManager.ZoneAt(c);
+            if (zone is Zone_Growing)
+            {
+                debugText = "Growing zone here";
+                return false;
+            }
+        }
+
+        if (haulable.def.passability > Traversability.Standable)
+        {
+            for (var i = 0; i < 8; i++)
+            {
+                var c2 = c + GenAdj.AdjacentCells[i];
+                if (!c2.InBounds(worker.Map))
+                {
+                    continue;
+                }
+
+                if (worker.Map.designationManager.DesignationAt(c2,
+                        DesignationDefOf.Mine) == null)
+                {
+                    continue;
+                }
+
+                debugText = "Mining designated nearby";
+                return false;
+            }
+        }
+
+        var b = false;
+        var cardinalDirectionsAndInside = GenAdj.CardinalDirectionsAndInside;
+        for (var j = 0; j < cardinalDirectionsAndInside.CountAllowNull(); j++)
+        {
+            var c3 = c + cardinalDirectionsAndInside[j];
+            if (!c3.InBounds(worker.Map))
+            {
+                continue;
+            }
+
+            var edifice = c3.GetEdifice(worker.Map);
+            if (edifice != null)
+            {
+                if (edifice is Building_Door)
+                {
+                    break;
+                }
+
+                if (edifice is not Building_WorkTable)
+                {
+                    continue;
+                }
+
+                slotGroup = c3.GetSlotGroup(worker.Map);
+                if (slotGroup == null)
+                {
+                    continue;
+                }
+
+                if (slotGroup.Settings.AllowedToAccept(haulable))
+                {
+                    b = true;
+                }
             }
             else
             {
-                var slotGroup = c.GetSlotGroup(worker.Map);
-                if (slotGroup != null)
-                {
-                    if (!slotGroup.Settings.AllowedToAccept(haulable))
-                    {
-                        debugText = "Stockpile does not accept";
-                        return false;
-                    }
-                }
-
-                if (!c.Standable(worker.Map))
-                {
-                    debugText = "Cell not standable";
-                    result = false;
-                }
-                else
-                {
-                    if (c == haulable.Position && haulable.Spawned)
-                    {
-                        debugText = "Current position of thing to be hauled";
-                        result = false;
-                    }
-                    else
-                    {
-                        if (c.ContainsStaticFire(worker.Map))
-                        {
-                            debugText = "Cell has fire";
-                            result = false;
-                        }
-                        else
-                        {
-                            if (haulable.def.BlocksPlanting())
-                            {
-                                var zone = worker.Map.zoneManager.ZoneAt(c);
-                                if (zone is Zone_Growing)
-                                {
-                                    debugText = "Growing zone here";
-                                    return false;
-                                }
-                            }
-
-                            if (haulable.def.passability > Traversability.Standable)
-                            {
-                                for (var i = 0; i < 8; i++)
-                                {
-                                    var c2 = c + GenAdj.AdjacentCells[i];
-                                    if (!c2.InBounds(worker.Map))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (worker.Map.designationManager.DesignationAt(c2,
-                                            DesignationDefOf.Mine) == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    debugText = "Mining designated nearby";
-                                    return false;
-                                }
-                            }
-
-                            var b = false;
-                            var cardinalDirectionsAndInside = GenAdj.CardinalDirectionsAndInside;
-                            for (var j = 0; j < cardinalDirectionsAndInside.CountAllowNull(); j++)
-                            {
-                                var c3 = c + cardinalDirectionsAndInside[j];
-                                if (!c3.InBounds(worker.Map))
-                                {
-                                    continue;
-                                }
-
-                                var edifice = c3.GetEdifice(worker.Map);
-                                if (edifice != null)
-                                {
-                                    if (edifice is Building_Door)
-                                    {
-                                        break;
-                                    }
-
-                                    if (edifice is not Building_WorkTable)
-                                    {
-                                        continue;
-                                    }
-
-                                    slotGroup = c3.GetSlotGroup(worker.Map);
-                                    if (slotGroup == null)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (slotGroup.Settings.AllowedToAccept(haulable))
-                                    {
-                                        b = true;
-                                    }
-                                }
-                                else
-                                {
-                                    b = true;
-                                }
-                            }
-
-                            if (!b)
-                            {
-                                debugText = "No valid position could be found.";
-                                result = false;
-                            }
-                            else
-                            {
-                                var edifice2 = c.GetEdifice(worker.Map);
-                                if (edifice2 != null)
-                                {
-                                    if (edifice2 is Building_Trap)
-                                    {
-                                        debugText = "It's a trap.";
-                                        return false;
-                                    }
-
-                                    if (edifice2 is Building_WorkTable)
-                                    {
-                                        debugText = "It's not a trap, but we still can't put something here.";
-                                        return false;
-                                    }
-                                }
-
-                                debugText = "OK";
-                                result = true;
-                            }
-                        }
-                    }
-                }
+                b = true;
             }
         }
 
-        return result;
+        if (!b)
+        {
+            debugText = "No valid position could be found.";
+            return false;
+        }
+
+        var edifice2 = c.GetEdifice(worker.Map);
+        if (edifice2 != null)
+        {
+            switch (edifice2)
+            {
+                case Building_Trap:
+                    debugText = "It's a trap.";
+                    return false;
+                case Building_WorkTable:
+                    debugText = "It's not a trap, but we still can't put something here.";
+                    return false;
+            }
+        }
+
+        debugText = "OK";
+        return true;
     }
 
-    public static bool TryFindBetterStoreCellInRange(Thing t, Pawn carrier, Map map, int range,
+    private static bool tryFindBetterStoreCellInRange(Thing t, Pawn carrier, Map map, int range,
         StoragePriority currentPriority, Faction faction, out IntVec3 foundCell, bool needAccurateResult = true)
     {
         var allGroupsListInPriorityOrder = map.haulDestinationManager.AllGroupsListInPriorityOrder;
