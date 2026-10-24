@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 using Verse.AI;
@@ -11,12 +12,9 @@ public class WorkGiver_ClearStockpile : WorkGiver_Haul
     {
         var list = pawn.Map.listerHaulables.ThingsPotentiallyNeedingHauling();
         var list2 = new List<Thing>();
-        foreach (var thing in list)
+        foreach (var thing in list.Where(thing => thing.IsInAnyStorage() && !thing.IsInValidStorage()))
         {
-            if (thing.IsInAnyStorage() && !thing.IsInValidStorage())
-            {
-                list2.Add(thing);
-            }
+            list2.Add(thing);
         }
 
         return list2;

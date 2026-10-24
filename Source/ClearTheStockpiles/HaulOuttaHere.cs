@@ -154,13 +154,10 @@ public static class HaulOuttaHere
         }
 
         var slotGroup = c.GetSlotGroup(worker.Map);
-        if (slotGroup != null)
+        if (slotGroup != null && !slotGroup.Settings.AllowedToAccept(haulable))
         {
-            if (!slotGroup.Settings.AllowedToAccept(haulable))
-            {
-                debugText = "Stockpile does not accept";
-                return false;
-            }
+            debugText = "Stockpile does not accept";
+            return false;
         }
 
         if (!c.Standable(worker.Map))
